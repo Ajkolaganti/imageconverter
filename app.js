@@ -14,6 +14,9 @@ const upload = multer({ storage: multer.memoryStorage() });
 // Path to your service account key file
 // const keyFilePath = path.join(__dirname, 'imageai-437222-140b791e96a1.json');
 const client = new vision.ImageAnnotatorClient();
+app.get('/api/convert', (req, res) => {
+  res.send('This is a GET request. Use POST to submit data.');
+});
 
 app.post('/api/convert', upload.single('image'), async (req, res) => {
   console.log('Request received for conversion');
