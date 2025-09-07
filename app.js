@@ -24,6 +24,16 @@ const client = new vision.ImageAnnotatorClient({
     : undefined
 });
 
+app.get('/api/health', (req, res) => {
+  const hasCredentials = !!process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  console.log('Health check - Has credentials:', hasCredentials);
+  res.json({ 
+    status: 'ok',
+    hasCredentials,
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.post('/api/convert', upload.single('image'), async (req, res) => {
   console.log('Request received for conversion');
   
@@ -35,6 +45,7 @@ app.post('/api/convert', upload.single('image'), async (req, res) => {
   console.log(`File received: ${req.file.originalname}, Size: ${req.file.size} bytes`);
 
   try {
+    console.log('Calling Google Vision API...');
     const [result] = await client.textDetection(req.file.buffer);
     console.log('Vision API response received');
 
@@ -61,7 +72,14 @@ app.post('/api/convert', upload.single('image'), async (req, res) => {
     }
   } catch (error) {
     console.error('Conversion error:', error);
-    res.status(500).json({ error: 'Conversion failed', details: error.message });
+    console.error('Error stack:', error.stack);
+    console.error('Error code:', error.code);
+    res.status(500).json({ 
+      error: 'Conversion failed', 
+      details: error.message,
+      code: error.code,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
