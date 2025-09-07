@@ -8,8 +8,11 @@ const app = express();
 app.use(cors());
 const upload = multer({ storage: multer.memoryStorage() });
 
+// Initialize Google Cloud Vision client with environment variable authentication
 const client = new vision.ImageAnnotatorClient({
-  keyFilename: '/home/ec2-user/imageconverter/imageai-437222-140b791e96a1.json'
+  credentials: process.env.GOOGLE_APPLICATION_CREDENTIALS 
+    ? JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS)
+    : undefined
 });
 
 app.post('/api/convert', upload.single('image'), async (req, res) => {
@@ -81,7 +84,13 @@ app.post('/api/download', express.json(), (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Export the Express app for Vercel
+module.exports = app;
+
+// Keep the local development server setup for development mode
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
